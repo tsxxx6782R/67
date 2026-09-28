@@ -1,0 +1,62 @@
+-- นำสคริปต์นี้ไปรันใน Executor บนคอมพิวเตอร์
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- สร้าง ScreenGui สำหรับปุ่มเมนู (รันผ่าน Executor ใช้ CoreGui เพื่อความชัวร์ว่าจะไม่โดนบล็อก)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CleanScreenMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
+
+-- สร้างปุ่มกดเมนูสวิตช์
+local button = Instance.new("TextButton")
+button.Name = "ToggleCleanBtn"
+button.Size = UDim2.new(0, 160, 0, 45)
+button.Position = UDim2.new(0, 20, 0, 120) -- ตำแหน่งมุมซ้ายของจอ
+button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.TextSize = 15
+button.Font = Enum.Font.GothamBold
+button.Text = "Clean Screen: OFF"
+button.Parent = screenGui
+
+-- ทำขอบปุ่มให้มนสวยงาม
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = button
+
+local isClean = false
+
+-- ฟังก์ชันสำหรับซ่อน/แสดง UI ทั้งหมด
+local function toggleCleanMode()
+    isClean = not isClean
+    
+    if isClean then
+        button.Text = "Clean Screen: ON"
+        button.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- เปลี่ยนเป็นสีเขียวเมื่อเปิด
+    else
+        button.Text = "Clean Screen: OFF"
+        button.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- กลับเป็นสีดำ
+    end
+    
+    -- 1. ซ่อน UI ของตัวผู้เล่นใน PlayerGui (เลือด, สปีด, เงิน ฯลฯ)
+    for _, gui in ipairs(playerGui:GetChildren()) do
+        if gui ~= screenGui and gui:IsA("ScreenGui") then
+            gui.Enabled = not isClean
+        end
+    end
+    
+    -- 2. ซ่อน CoreGui ของ Roblox (เช่น แชท, รายชื่อผู้เล่น, เมนูมุมซ้ายบน)
+    pcall(function()
+        game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, not isClean)
+    end)
+end
+
+-- กดปุ่มเพื่อใช้งาน
+button.MouseButton1Click:Connect(function()
+    toggleCleanMode()
+end)
+
+print("โหลดสคริปต์ทำหน้าจอโล่งสำเร็จ! กดปุ่มที่มุมซ้ายจอเพื่อซ่อน UI ได้เลย")
