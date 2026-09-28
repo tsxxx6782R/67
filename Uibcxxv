@@ -1,0 +1,167 @@
+-- นำสคริปต์นี้ไปรันใน Executor บนคอมพิวเตอร์
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ลบ UI เก่าทิ้งก่อนเพื่อป้องกันการซ้อนทับ
+if playerGui:FindFirstChild("UltimateEvadeHub") then
+    playerGui.UltimateEvadeHub:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "UltimateEvadeHub"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
+
+-- 1. กรอบเมนูหลัก (Main Frame)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 260, 0, 320)
+mainFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- ขอบเรืองแสงสไตล์สายฟ้า
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2.5
+stroke.Color = Color3.fromRGB(0, 220, 255)
+stroke.Parent = mainFrame
+
+-- เอฟเฟกต์สีขอบกระพริบวิบวับ
+task.spawn(function()
+    while mainFrame.Parent do
+        TweenService:Create(stroke, TweenInfo.new(0.6), {Color = Color3.fromRGB(180, 0, 255)}):Play()
+        task.wait(0.6)
+        TweenService:Create(stroke, TweenInfo.new(0.6), {Color = Color3.fromRGB(0, 220, 255)}):Play()
+        task.wait(0.6)
+    end
+end)
+
+-- 2. ส่วนหัวข้อ (Title Bar)
+local titleBar = Instance.new("TextLabel")
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+titleBar.Text = "⚡ EVADE ULTRA HUB ⚡"
+titleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleBar.TextSize = 16
+titleBar.Font = Enum.Font.GothamBold
+titleBar.Parent = mainFrame
+
+-- ปุ่มย่อ/ขยายหน้าต่าง (Minimize Button)
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 35, 0, 35)
+minimizeBtn.Position = UDim2.new(1, -40, 0, 5)
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Text = "-"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.TextSize = 22
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.Parent = titleBar
+
+-- ฟังก์ชันสร้างปุ่มตัวเลือก
+local function createButton(name, positionY)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 220, 0, 45)
+    btn.Position = UDim2.new(0, 20, 0, positionY)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 14
+    btn.Font = Enum.Font.GothamSemibold
+    btn.Text = name
+    btn.Parent = mainFrame
+    
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 8)
+    c.Parent = btn
+    return btn
+end
+
+local btnKorblox = createButton("Korblox Leg: OFF", 65)
+local btnCleanHud = createButton("Hide HUD (HP/Speed/Time): OFF", 120)
+local btnVoice = createButton("🔊 เสียง: อับดุล พร้อมใช้งาน", 175)
+
+-- ฟังก์ชันเล่นเสียง
+local function playAbdulSound()
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://9114220037"
+        sound.Volume = 2
+        sound.Parent = SoundService
+        sound:Play()
+        print("🔊 อับดุล พร้อมใช้งานแล้ว!")
+    end)
+end
+
+btnVoice.MouseButton1Click:Connect(function()
+    playAbdulSound()
+    btnVoice.Text = "✅ เสียงเล่นแล้ว!"
+    task.wait(1.5)
+    btnVoice.Text = "🔊 เสียง: อับดุล พร้อมใช้งาน"
+end)
+
+-- ระบบพับหน้าต่าง (Minimize)
+local isMinimized = false
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    local targetSize = isMinimized and UDim2.new(0, 260, 0, 45) or UDim2.new(0, 260, 0, 320)
+    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
+    minimizeBtn.Text = isMinimized and "+" or "-"
+end)
+
+-- สถานะ
+local isKorbloxOn = false
+local isHudHidden = false
+
+-- 3. ฟังก์ชันขากุด (Korblox)
+btnKorblox.MouseButton1Click:Connect(function()
+    isKorbloxOn = not isKorbloxOn
+    btnKorblox.Text = isKorbloxOn and "Korblox Leg: ON" or "Korblox Leg: OFF"
+    btnKorblox.BackgroundColor3 = isKorbloxOn and Color3.fromRGB(0, 180, 80) or Color3.fromRGB(35, 35, 45)
+    
+    local char = player.Character
+    if char then
+        local r6 = char:FindFirstChild("Right Leg")
+        local r15_1 = char:FindFirstChild("RightLowerLeg")
+        local r15_2 = char:FindFirstChild("RightFoot")
+        local r15_upper = char:FindFirstChild("RightUpperLeg")
+        
+        if isKorbloxOn then
+            if r6 then r6.Transparency = 1; r6.CanCollide = false end
+            if r15_1 then r15_1.Transparency = 1; r15_1.CanCollide = false end
+            if r15_2 then r15_2.Transparency = 1; r15_2.CanCollide = false end
+            if r15_upper then r15_upper.Transparency = 0; r15_upper.BrickColor = BrickColor.new("Really black") end
+        else
+            if r6 then r6.Transparency = 0; r6.CanCollide = true end
+            if r15_1 then r15_1.Transparency = 0; r15_1.CanCollide = true end
+            if r15_2 then r15_2.Transparency = 0; r15_2.CanCollide = true end
+            if r15_upper then r15_upper.BrickColor = BrickColor.new("Medium stone grey") end
+        end
+    end
+end)
+
+-- 4. ฟังก์ชันซ่อนเฉพาะหลอดเลือด ความเร็ว และเวลา
+btnCleanHud.MouseButton1Click:Connect(function()
+    isHudHidden = not isHudHidden
+    btnCleanHud.Text = isHudHidden and "Hide HUD: ON" or "Hide HUD (HP/Speed/Time): OFF"
+    btnCleanHud.BackgroundColor3 = isHudHidden and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(35, 35, 45)
+    
+    for _, gui in ipairs(playerGui:GetDescendants()) do
+        if gui ~= screenGui and (gui:IsA("TextLabel") or gui:IsA("Frame") or gui:IsA("ImageLabel")) then
+            local nameLower = gui.Name:lower()
+            if nameLower:find("health") or nameLower:find("hp") or nameLower:find("speed") or nameLower:find("time") or nameLower:find("timer") or nameLower:find("stamina") then
+                gui.Visible = not isHudHidden
+            end
+        end
+    end
+end)
+
+print("⚡ โหลดเมนูสำเร็จ หน้าต่าง UI เด้งขึ้นมาแล้ว!")
