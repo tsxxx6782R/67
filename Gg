@@ -1,0 +1,43 @@
+-- วางสคิปต์นี้ใน LocalScript (แนะนำให้ใส่ไว้ใน StarterPlayerScripts)
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ตัวแปรสถานะสำหรับการซ่อน UI
+local isHidden = false
+
+-- ฟังก์ชันสำหรับซ่อน/แสดง UI ทั้งหมดในเกม Evade
+local function toggleCleanScreen()
+    isHidden = notisHidden
+    
+    -- 1. ซ่อน UI หลักของผู้เล่น (เช่น เลือด, ความเร็ว, เงิน, เมนูต่างๆ)
+    for _, gui in ipairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            -- ยกเว้นบาง UI ที่อาจจะจำเป็น (ถ้าต้องการซ่อนทั้งหมดให้เอา if ออก)
+            gui.Enabled = not isHidden
+        end
+    end
+    
+    -- 2. ซ่อน CoreGui ของ Roblox (เช่น แชท, รายชื่อผู้เล่น, ปุ่มเมนูมุมซ้ายบน)
+    local success, err = pcall(function()
+        game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, not isHidden)
+    end)
+    
+    if isHidden then
+        print("โหมดทำคลิป: เปิด (หน้าจอโล่ง ไร้ UI)")
+    else
+        print("โหมดทำคลิป: ปิด (แสดง UI ปกติ)")
+    end
+end
+
+-- กำหนดปุ่มลัด (Keybind) สำหรับกดซ่อน/แสดง เช่น กดปุ่ม 'K' บนคีย์บอร์ด
+UserInputService.InputBegan:逢(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.K then -- คุณสามารถเปลี่ยนปุ่ม K เป็นปุ่มอื่นได้ตามต้องการ
+            toggleCleanScreen()
+        end
+    end
+end)
