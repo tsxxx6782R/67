@@ -1,0 +1,56 @@
+-- วางสคริปต์นี้ใน LocalScript (แนะนำให้ใส่ไว้ใน StarterPlayer > StarterPlayerScripts)
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function applyKorblox(character)
+    -- รอให้ชิ้นส่วนตัวละครโหลดครบ
+    local rightLeg = character:WaitForChild("Right Leg", 5) or character:WaitForChild("RightLowerLeg", 5)
+    local rightUpperLeg = character:WaitForChild("RightUpperLeg", 5)
+    
+    if rightLeg then
+        -- 1. ซ่อนขาขวาเดิม (หรือเท้าเดิม) เพื่อไม่ให้ซ้อนกัน
+        rightLeg.Transparency = 1
+        rightLeg.CanCollide = false
+        
+        local rightFoot = character:FindFirstChild("RightFoot")
+        if rightFoot then
+            rightFoot.Transparency = 1
+            rightFoot.CanCollide = false
+        end
+        
+        -- 2. สร้างชิ้นส่วนขา Korblox จำลองขึ้นมาใหม่
+        local korbloxLeg = Instance.new("Part")
+        korbloxLeg.Name = "CustomKorbloxLeg"
+        korbloxLeg.Size = Vector3.new(1, 2, 1) -- ขนาดความยาวของขา
+        korbloxLeg.BrickColor = BrickColor.new("Really black") -- สีดำสนิท
+        korbloxLeg.Material = Enum.Material.SmoothPlastic
+        korbloxLeg.CanCollide = false
+        
+        -- ปรับรูปร่างให้เรียวแหลมลงด้านล่างเหมือนของจริง
+        local mesh = Instance.new("SpecialMesh")
+        mesh.MeshType = Enum.MeshType.Wedge -- ใช้ทรงลิ่ม/แหลม
+        mesh.Scale = Vector3.new(0.9, 1.1, 0.9)
+        mesh.Parent = korbloxLeg
+        
+        -- 3. เชื่อมต่อ (Weld) ขา Korblox เข้ากับข้อต่อสะโพกขวาของตัวละคร
+        local weld = Instance.new("WeldConstraint")
+        korbloxLeg.Position = rightLeg.Position
+        weld.Part0 = rightLeg
+        weld.Part1 = korbloxLeg
+        weld.Parent = korbloxLeg
+        
+        korbloxLeg.Parent = character
+        
+        print("สำเร็จ: เสกขา Korblox ให้ตัวละครเรียบร้อยแล้ว!")
+    end
+end
+
+-- ทำงานเมื่อตัวละครเกิด
+if player.Character then
+    applyKorblox(player.Character)
+end
+
+player.CharacterAdded:Connect(function(character)
+    applyKorblox(character)
+end)
